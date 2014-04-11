@@ -78,6 +78,10 @@ public:
 	static int BuildColorQuantTable(int iColorQuantSpace = 3);
 	static void RGB2HMMD(int R, int G, int B, int &H, int &S, int &D);
 	static int QuantHMMD(int H, int S, int D, int iColorQuantSpace);
+	enum {	NUM_COLOR_QUANT_SPACE = 4,
+				MAX_SUB_SPACE = 5,
+				BASE_QUANT_SPACE = 256,
+				BASE_QUANT_SPACE_INDEX = 3 };
 
 private:
 
@@ -98,10 +102,7 @@ private:
 	// 3) build transform table using QuantHMMD() repeatedly (very inefficient)
 	static int BuildTransformTable(int iOrigColorQuantSpace, int nNewSize);
 
-	enum {	NUM_COLOR_QUANT_SPACE = 4,
-			MAX_SUB_SPACE = 5,
-			BASE_QUANT_SPACE = 256,
-			BASE_QUANT_SPACE_INDEX = 3 };
+
 
 	static const int diffThresh[NUM_COLOR_QUANT_SPACE][MAX_SUB_SPACE+1];
 	static const int nHueLevels[NUM_COLOR_QUANT_SPACE][MAX_SUB_SPACE];

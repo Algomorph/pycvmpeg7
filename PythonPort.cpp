@@ -112,13 +112,10 @@ PyObject* convert_RGB2HMMD(PyObject* o){
 
 	do {
 		R = (int)**dataptr;
-//		std::cout<< "R:" << R << ";";
 		iternext(iter);
 		G = (int)**dataptr;
-//		std::cout<< "G:" << G << ";";
 		iternext(iter);
 		B = (int)**dataptr;
-//		std::cout<< "B:" << B << ";" << std::endl;
 		XM::ColorStructureExtractionTool::RGB2HMMD(R,G,B, H, S, D );
 		*resptr = (short)H;
 		resptr++;
@@ -132,11 +129,59 @@ PyObject* convert_RGB2HMMD(PyObject* o){
 	PyObject* out = PyArray_SimpleNew(3, dims, NPY_SHORT);
 	void *arr_data = PyArray_DATA((PyArrayObject*)out);
 	memcpy(arr_data,result,byteSize);
-	//std::cout<<"got here" << std::endl;
 	free(result);
-	//::cout<<"got here" << std::endl;
 	return out;
 }
+
+PyObject* quantizeHMMD(PyObject* o){
+	if(!PyArray_Check(o)){
+		PyErr_SetString(PyExc_ValueError,"convert_RGB2HMMD only accepts a 3D numpy ndarray of type np.int16 as an argument");
+		bp::throw_error_already_set();
+	}
+	PyArrayObject* arr = (PyArrayObject*) o;
+	int ndims = PyArray_NDIM(arr);
+	if(ndims != 3){
+		PyErr_SetString(PyExc_ValueError,"convert_RGB2HMMD only accepts a 3D numpy ndarray of type np.int16 as an argument");
+		bp::throw_error_already_set();
+	}
+	int dtype = PyArray_TYPE(arr);
+	if(dtype != NPY_SHORT){
+		PyErr_SetString(PyExc_ValueError,"convert_RGB2HMMD only accepts a 3D numpy ndarray of type np.int16 as an argument");
+		bp::throw_error_already_set();
+	}
+	const npy_intp* _sizes = PyArray_DIMS(arr);
+	if(_sizes[2] != 3){
+		PyErr_SetString(PyExc_ValueError,"Depth of the array must be 3");
+		bp::throw_error_already_set();
+	}
+	NpyIter* iter = NpyIter_New(arr, NPY_ITER_READONLY, NPY_KEEPORDER, NPY_NO_CASTING, PyArray_DescrFromType(dtype));
+	NpyIter_IterNextFunc* iternext = NpyIter_GetIterNext(iter, NULL);
+
+	short** dataptr = (short**)NpyIter_GetDataPtrArray(iter);
+
+	int H, S, D;
+	uchar quant;
+
+	npy_intp dims[] = {_sizes[0],_sizes[1]};
+	PyObject* out = PyArray_SimpleNew(2, dims, NPY_UBYTE);
+	uchar* arr_data = (uchar*)PyArray_DATA((PyArrayObject*)out);
+	uchar* resptr = arr_data;
+
+	do {
+		H = (int)**dataptr;
+		iternext(iter);
+		S = (int)**dataptr;
+		iternext(iter);
+		D = (int)**dataptr;
+		quant = (unsigned char)XM::ColorStructureExtractionTool::QuantHMMD(H,S,D,XM::ColorStructureExtractionTool::BASE_QUANT_SPACE_INDEX);
+		*resptr = quant;
+		resptr++;
+	} while (iternext(iter));
+
+	return out;
+}
+
+
 
 //TODO: add Edge Histogram Descriptor extraction and Homogenous Texture Descriptor extraction
 
@@ -146,8 +191,12 @@ BOOST_PYTHON_MODULE(libMPEG7)
 	using namespace boost::python;
 	init_ar();
 
+	//Port subroutines
 	def("convert_RGB2HMMD",convert_RGB2HMMD, arg("raster"));
+	def("quantize_HMMD",quantizeHMMD,arg("raster"));
 
+
+	//Initialize converters
 	to_python_converter<cv::Mat, bcvt::matToNDArrayBoostConverter>();
 	bcvt::matFromNDArrayBoostConverter();
 	to_python_converter<ColorStructureDescriptor,
