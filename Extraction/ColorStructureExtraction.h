@@ -56,7 +56,7 @@ public:
 	int SetDescriptor(ColorStructureDescriptor* aColorStructureDescriptor);
 
 	///////////////////////////////////////////////////////////////
-	/// source ýmage: RGB (converted to HMMD within the function)
+	/// source ï¿½mage: RGB (converted to HMMD within the function)
 	/// band order: RGB <==> VYU, openCV: BGR <==> UYV
 	///////////////////////////////////////////////////////////////
 
@@ -76,16 +76,14 @@ public:
 	int DownQuantHMMD(int nNewSize);
 
 	static int BuildColorQuantTable(int iColorQuantSpace = 3);
-
+	static void RGB2HMMD(int R, int G, int B, int &H, int &S, int &D);
+	static int QuantHMMD(int H, int S, int D, int iColorQuantSpace);
 
 private:
 
 	static int GetColorQuantSpace(int size);
 	static int GetBinSize(int iColorQuantSpace);
-
 	// Single pixel/bin operations
-	static void RGB2HMMD(int R, int G, int B, int &H, int &S, int &D);
-	static int QuantHMMD(int H, int S, int D, int iColorQuantSpace);
 	static int TransformBinIndex(int iOrig, int iOrigColorQuantSpace,
 											int iNewColorQuantSpace);
 

@@ -309,9 +309,9 @@ struct matFromNDArrayBoostConverter {
 				&& typenum != NPY_USHORT && typenum != NPY_SHORT
 				&& typenum != NPY_INT && typenum != NPY_INT32
 				&& typenum != NPY_FLOAT && typenum != NPY_DOUBLE) {
-			return NULL;
+			return NULL;//data type not supported
 		}
-		int ndims = PyArray_NDIM(oarr); //data type not supported
+		int ndims = PyArray_NDIM(oarr);
 
 		if (ndims >= CV_MAX_DIM) {
 			return NULL; //too many dimensions

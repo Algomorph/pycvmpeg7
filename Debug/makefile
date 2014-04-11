@@ -55,13 +55,18 @@ libMPEG7.so: $(OBJS) $(USER_OBJS)
 	g++ -shared -o "libMPEG7.so" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
+	$(MAKE) --no-print-directory post-build
 
 # Other Targets
 clean:
 	-$(RM) $(CU_DEPS)$(OBJS)$(C++_DEPS)$(C_DEPS)$(CL_DEPS)$(CC_DEPS)$(LIBRARIES)$(CPP_DEPS)$(CXX_DEPS)$(C_UPPER_DEPS) libMPEG7.so
 	-@echo ' '
 
+post-build:
+	-cp libMPEG7.so  ~/.local/lib/python2.7/site-packages/
+	-@echo ' '
+
 .PHONY: all clean dependents
-.SECONDARY:
+.SECONDARY: post-build
 
 -include ../makefile.targets
