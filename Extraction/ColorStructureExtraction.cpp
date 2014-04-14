@@ -284,7 +284,7 @@ unsigned long ColorStructureExtractionTool::extract( void )
 
 
 //----------------------------------------------------------------------------
-// source ýmage: RGB (converted to HMMD within the function)
+// source ï¿½mage: RGB (converted to HMMD within the function)
 // descriptorSize: final descriptor size
 unsigned long ColorStructureExtractionTool::extract( int descriptorSize )
 {
@@ -504,19 +504,17 @@ void ColorStructureExtractionTool::RGB2HMMD(int R, int G, int B,
 	else
 	{   //solve Hue
 		if(R==max)
-			hue=((G-B)/(float)(max-min));
+			hue=((G-B)*60.0f/(float)(max-min));
 
 		else if(G==max)
-			hue=(2.0+(B-R)/(float)(max-min));
+			hue=(120.0f+(B-R)*60.0f/(float)(max-min));
 
 		else if(B==max)
-			hue=(4.0+(R-G)/(float)(max-min));
-
-		hue*=60;
-		if(hue<0.0) hue+=360;
+			hue=(240.0f+(R-G)*60.0f/(float)(max-min));
+		if(hue<0.0f) hue+=360.0f;
 	}
 
-	H = (long)(hue + 0.5);				//range [0,360]
+	H = (long)(hue + 0.5f);				//range [0,360]
 	S = (long)((max + min)/2.0 + 0.5);	//range [0,255]
 	D = (long)(max - min + 0.5);		//range [0,255]
 	return;
