@@ -10,6 +10,7 @@
 #include "PyFrame.h"
 #include "DescriptorConverters.hpp"
 #include "Extraction/ColorStructureExtraction.h"
+#include "CSInternalRoutines.hpp"
 
 namespace bp = boost::python;
 
@@ -37,6 +38,10 @@ XM::ColorStructureDescriptor getColorStructureD1(Mat image, Mat mask,
 XM::ColorStructureDescriptor getColorStructureD2(Mat image) {
 	PyFrame f(image);
 	return *Feature::getColorStructureD(&f);
+}
+XM::ColorStructureDescriptor getColorStructureD3(Mat image,int descSize = 64) {
+	PyFrame f(image);
+	return *Feature::getColorStructureD(&f,descSize);
 }
 //=====================================SCALABLE COLOR===============================================
 XM::ScalableColorDescriptor getScalableColorD0(PyFrame f, bool maskFlag = true,
@@ -181,6 +186,64 @@ PyObject* quantizeHMMD(PyObject* o){
 	return out;
 }
 
+PyObject* quantizeAmplitude(PyObject* o){
+	if(!PyArray_Check(o)){
+		PyErr_SetString(PyExc_ValueError,"quantizeAmplitude only accepts a 1D numpy ndarray of type np.uint16 as an argument");
+		bp::throw_error_already_set();
+	}
+	PyArrayObject* arr = (PyArrayObject*) o;
+	int ndims = PyArray_NDIM(arr);
+	if(ndims != 1){
+		PyErr_SetString(PyExc_ValueError,"quantizeAmplitude only accepts a 1D numpy ndarray of type np.uint16 as an argument");
+		bp::throw_error_already_set();
+	}
+	int dtype = PyArray_TYPE(arr);
+	if(dtype != NPY_USHORT){
+		PyErr_SetString(PyExc_ValueError,"quantizeAmplitude only accepts a 1D numpy ndarray of type np.uint16 as an argument");
+		bp::throw_error_already_set();
+	}
+	NpyIter* iter = NpyIter_New(arr, NPY_ITER_READONLY, NPY_KEEPORDER, NPY_NO_CASTING, PyArray_DescrFromType(dtype));
+	NpyIter_IterNextFunc* iternext = NpyIter_GetIterNext(iter, NULL);
+	ushort** dataptr = (ushort**)NpyIter_GetDataPtrArray(iter);
+
+	XM::ColorStructureExtractionTool* csdt = new  XM::ColorStructureExtractionTool();
+	XM::ColorStructureDescriptor* csd = csdt->GetDescriptor();
+	csd->SetSize(ColorStructureExtractionTool::BASE_QUANT_SPACE);
+	for (int i =0; i < ColorStructureExtractionTool::BASE_QUANT_SPACE; i++){
+		csd->SetElement(i,(int)**dataptr);
+		iternext(iter);
+	}
+	csdt->QuantAmplNonLinear(249*249);
+	npy_intp dims[] = {ColorStructureExtractionTool::BASE_QUANT_SPACE};
+	PyObject* out = PyArray_SimpleNew(1, dims, NPY_UBYTE);
+	uchar* arr_data = (uchar*)PyArray_DATA((PyArrayObject*)out);
+	for (int i =0; i < ColorStructureExtractionTool::BASE_QUANT_SPACE; i++){
+		arr_data[i] = (unsigned char)csd->GetElement(i);
+	}
+	return out;
+}
+
+XM::ColorStructureDescriptor slidingHistogram(PyObject* o){
+	if(!PyArray_Check(o)){
+		PyErr_SetString(PyExc_ValueError,"quantizeAmplitude only accepts a 2D numpy ndarray of type np.uint8 as an argument");
+		bp::throw_error_already_set();
+	}
+	PyArrayObject* arr = (PyArrayObject*) o;
+	int ndims = PyArray_NDIM(arr);
+	if(ndims != 2){
+		PyErr_SetString(PyExc_ValueError,"quantizeAmplitude only accepts a 2D numpy ndarray of type np.uint8 as an argument");
+		bp::throw_error_already_set();
+	}
+	int dtype = PyArray_TYPE(arr);
+	if(dtype != NPY_UBYTE){
+		PyErr_SetString(PyExc_ValueError,"quantizeAmplitude only accepts a 2D numpy ndarray of type np.uint8 as an argument");
+		bp::throw_error_already_set();
+	}
+	const npy_intp* shape = PyArray_DIMS(arr);
+	uchar* arr_data = (uchar*)PyArray_DATA((PyArrayObject*)arr);
+	return subroutines::extractDescriptorFromQuantBuffer(arr_data,shape[0],shape[1]);
+}
+
 
 
 //TODO: add Edge Histogram Descriptor extraction and Homogenous Texture Descriptor extraction
@@ -191,11 +254,6 @@ BOOST_PYTHON_MODULE(libMPEG7)
 	using namespace boost::python;
 	init_ar();
 
-	//Port subroutines
-	def("convert_RGB2HMMD",convert_RGB2HMMD, arg("raster"));
-	def("quantize_HMMD",quantizeHMMD,arg("raster"));
-
-
 	//Initialize converters
 	to_python_converter<cv::Mat, bcvt::matToNDArrayBoostConverter>();
 	bcvt::matFromNDArrayBoostConverter();
@@ -205,6 +263,12 @@ BOOST_PYTHON_MODULE(libMPEG7)
 			cvt::ScalableColorDescriptorToPyObject>();
 	to_python_converter<DominantColorDescriptor,
 			cvt::DominantColorDescriptorToPyObject>();
+
+	//Port subroutines
+	def("convert_RGB2HMMD",convert_RGB2HMMD, arg("raster"));
+	def("quantize_HMMD",quantizeHMMD,arg("raster"));
+	def("quantize_amplitude",quantizeAmplitude,arg("descriptor"));
+	def("sliding_histogram",slidingHistogram,arg("quant_array"));
 
 	void (PyFrame::*setImageProper)(Mat) = &PyFrame::setImage;
 	void (PyFrame::*setGrayProper)(Mat) = &PyFrame::setGray;
@@ -241,6 +305,7 @@ BOOST_PYTHON_MODULE(libMPEG7)
 	def("get_color_structure_descriptor", getColorStructureD1,
 			(arg("raster"), arg("mask"), arg("mask_val")));
 	def("get_color_structure_descriptor", getColorStructureD2, (arg("raster")));
+	def("get_color_structure_descriptor", getColorStructureD3, (arg("raster"), arg("desc_size") = 64));
 	//++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	def("get_scalable_color_descriptor", getScalableColorD0,
 			(arg("frame"), arg("use_mask") = true, arg("num_coeffs") = 256, arg(

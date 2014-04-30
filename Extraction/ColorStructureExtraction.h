@@ -82,7 +82,8 @@ public:
 				MAX_SUB_SPACE = 5,
 				BASE_QUANT_SPACE = 256,
 				BASE_QUANT_SPACE_INDEX = 3 };
-
+	// Full descriptor operations
+	int QuantAmplNonLinear(unsigned long OldNorm);
 private:
 
 	static int GetColorQuantSpace(int size);
@@ -92,7 +93,6 @@ private:
 											int iNewColorQuantSpace);
 
 	// Full descriptor operations
-	int QuantAmplNonLinear(unsigned long OldNorm);
 	int ConvertAmplLinear(unsigned long NewNorm);
 	int UnifyBins(unsigned long Norm, int nNewSize);
 

@@ -18,15 +18,6 @@ using namespace XM;
 namespace bp = boost::python;
 namespace cvt{
 
-//void printElements(int size, unsigned long data){
-//	std::ostringstream srm;
-//	srm << "(";
-//	for (unsigned long i_element = 0; i_element < size;i_element++){
-//		srm << data[i_element] << ", ";
-//	}
-//	std::cout << srm.str() << std::endl;
-//}
-
 struct ColorStructureDescriptorToNDArray {
 	static PyObject* convert(const ColorStructureDescriptor& desc) {
 		npy_intp dims[] = {static_cast<unsigned int>(desc.m_Size)};

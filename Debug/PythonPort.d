@@ -58,7 +58,8 @@ PythonPort.d: ../PythonPort.cpp ../CVBoostConverter.hpp \
  /home/algomorph/Factory/pycvmpeg7/Descriptors/ScalableColor.h \
  ../Extraction/ScalableColorExtraction.h ../PyFrame.h \
  ../DescriptorConverters.hpp ../Extraction/ColorStructureExtraction.h \
- /home/algomorph/Factory/pycvmpeg7/Descriptors/ColorStructure.h
+ /home/algomorph/Factory/pycvmpeg7/Descriptors/ColorStructure.h \
+ ../CSInternalRoutines.hpp
 
 ../CVBoostConverter.hpp:
 
@@ -261,3 +262,5 @@ PythonPort.d: ../PythonPort.cpp ../CVBoostConverter.hpp \
 ../Extraction/ColorStructureExtraction.h:
 
 /home/algomorph/Factory/pycvmpeg7/Descriptors/ColorStructure.h:
+
+../CSInternalRoutines.hpp:

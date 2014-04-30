@@ -4,6 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
+../CSInternalRoutines.cpp \
 ../Convert.cpp \
 ../Feature.cpp \
 ../Frame.cpp \
@@ -11,6 +12,7 @@ CPP_SRCS += \
 ../PythonPort.cpp 
 
 OBJS += \
+./CSInternalRoutines.o \
 ./Convert.o \
 ./Feature.o \
 ./Frame.o \
@@ -18,6 +20,7 @@ OBJS += \
 ./PythonPort.o 
 
 CPP_DEPS += \
+./CSInternalRoutines.d \
 ./Convert.d \
 ./Feature.d \
 ./Frame.d \
